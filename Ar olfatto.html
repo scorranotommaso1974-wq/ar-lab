@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR — Il Profumo del Garofano | Agri-Hub Taviano</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:sans-serif;background:#1a0a1a;color:white;overflow:hidden;}
+    #video{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;}
+    #canvas{position:fixed;inset:0;width:100%;height:100%;z-index:5;}
+    #navBar{position:fixed;top:0;left:0;right:0;z-index:30;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(to bottom,rgba(0,0,0,0.7),transparent);}
+    #ui{position:fixed;bottom:0;left:0;right:0;z-index:20;padding:0 16px 16px;}
+    #infoBox{background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);border-radius:20px 20px 0 0;padding:20px;border-top:3px solid #ec4899;}
+    .badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;margin-right:6px;margin-bottom:6px;}
+    #pulsante{width:100%;padding:14px;background:#ec4899;color:#0a0a0a;border:none;border-radius:14px;font-size:16px;font-weight:900;cursor:pointer;margin-top:12px;text-transform:uppercase;letter-spacing:0.06em;}
+    #permessoScreen{position:fixed;inset:0;z-index:100;background:#1a0a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;}
+    #errorScreen{position:fixed;inset:0;z-index:100;background:#1a0505;display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;}
+  </style>
+</head>
+<body>
+
+  <div id="permessoScreen">
+    <div style="font-size:64px;margin-bottom:20px;">&#x1F338;</div>
+    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#ec4899;margin-bottom:12px;">Stazione 2 — Agri-Hub Taviano</div>
+    <h1 style="font-size:26px;font-weight:900;margin-bottom:12px;">Il Profumo del Garofano</h1>
+    <p style="color:#94a3b8;font-size:14px;line-height:1.6;margin-bottom:24px;max-width:320px;">Un percorso olfattivo guidato dalla AR. Ogni essenza e associata a immagini della pianta e del suo ciclo vitale. Per non udenti: card visive con codice colore.</p>
+    <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:16px;margin-bottom:24px;text-align:left;width:100%;max-width:320px;">
+      <p style="font-size:11px;font-weight:700;color:#ec4899;margin-bottom:8px;text-transform:uppercase;">Durata: 15 min &nbsp;|&nbsp; Eta: 5++</p>
+      <p style="font-size:12px;color:#94a3b8;line-height:1.8;">&#x2714; Accesso fotocamera necessario<br>&#x2714; Puntare verso l ambiente circostante<br>&#x2314; GPS non richiesto</p>
+    </div>
+    <button onclick="avviaAR()" style="width:100%;max-width:320px;padding:16px;background:#ec4899;color:#0a0a0a;border:none;border-radius:14px;font-size:16px;font-weight:900;cursor:pointer;text-transform:uppercase;letter-spacing:0.06em;">&#x1F4F7; Avvia Percorso AR</button>
+    <a href="https://script.google.com/macros/s/AKfycbw4HEPydlDIT8hw63q12OEmerpCz6-HYMwhaORNY7nakupA09p7Q0XnQSc6UR7-ejRg3A/exec?p=ARVR" style="display:block;margin-top:16px;color:#64748b;font-size:12px;">&#x2190; Torna ad Agri-Hub</a>
+  </div>
+
+  <div id="errorScreen">
+    <div style="font-size:48px;margin-bottom:16px;">&#x26A0;&#xFE0F;</div>
+    <h2 style="font-size:22px;font-weight:900;margin-bottom:12px;">Fotocamera non disponibile</h2>
+    <p id="errorMsg" style="color:#94a3b8;font-size:13px;line-height:1.6;margin-bottom:20px;max-width:300px;"></p>
+    <button onclick="avviaAR()" style="padding:12px 24px;background:#ec4899;color:#0a0a0a;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:12px;">Riprova</button>
+    <a href="https://script.google.com/macros/s/AKfycbw4HEPydlDIT8hw63q12OEmerpCz6-HYMwhaORNY7nakupA09p7Q0XnQSc6UR7-ejRg3A/exec?p=ARVR" style="color:#64748b;font-size:12px;">&#x2190; Torna ad Agri-Hub</a>
+  </div>
+
+  <video id="video" autoplay playsinline muted></video>
+  <canvas id="canvas"></canvas>
+
+  <div id="navBar">
+    <div>
+      <p style="font-size:9px;color:#ec4899;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin:0;">Agri-Hub Taviano</p>
+      <p style="font-size:11px;font-weight:900;margin:0;">Stazione 2 — Il Profumo del Garofano</p>
+    </div>
+    <a href="https://script.google.com/macros/s/AKfycbw4HEPydlDIT8hw63q12OEmerpCz6-HYMwhaORNY7nakupA09p7Q0XnQSc6UR7-ejRg3A/exec?p=ARVR" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;padding:8px 16px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;text-decoration:none;">&#x2715; Chiudi</a>
+  </div>
+
+  <div id="ui" style="display:none;">
+    <div id="infoBox">
+      <p style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#ec4899;margin-bottom:4px;">&#x1F331; Stazione 2 — Percorso Sensoriale AR</p>
+      <h2 id="titolo" style="font-size:20px;font-weight:900;margin-bottom:6px;">Il Profumo del Garofano</h2>
+      <p id="istruzione" style="font-size:13px;color:#94a3b8;line-height:1.5;margin-bottom:12px;">Un percorso olfattivo guidato dalla AR. Ogni essenza e associata a immagini della pianta e del suo ciclo vitale. Per non udenti: card visive con codice colore.</p>
+      <div>
+        <span class="badge" style="background:rgba(255,255,255,0.1);color:#94a3b8;">15 min</span>
+        <span class="badge" style="background:rgba(255,255,255,0.1);color:#94a3b8;">Eta 5++</span>
+        <span class="badge" style="background:rgba(255,255,255,0.1);color:#94a3b8;">Olfattiva</span>
+      </div>
+      <p id="infoExtra" style="font-size:11px;color:#ec4899;margin-top:8px;font-weight:600;"></p>
+      <button id="pulsante" onclick="avanzaStep()">Prossimo &#x2192;</button>
+    </div>
+  </div>
+
+<script>
+  var video = document.getElementById('video');
+  var canvas = document.getElementById('canvas');
+  var ctx = canvas.getContext('2d');
+  var stepCorrente = 0;
+  var t = 0;
+  var ACC = '#ec4899';
+
+  var steps = [{"titolo": "Garofano di Taviano", "istruzione": "Annusa l essenza di garofano. Questo fiore e il simbolo di Taviano — coltivato nelle serre dal dopoguerra. Il profumo viene dai petali dove si concentrano gli oli essenziali.", "info": "Olio essenziale: Eugenolo 80% — Note: speziato floreale"}, {"titolo": "Terra Bagnata", "istruzione": "Annusa l essenza di petricor — il profumo della terra bagnata. Si chiama geosmina ed e prodotta dai batteri del suolo Streptomyces quando la pioggia cade sulla terra secca.", "info": "Geosmina — prodotta da batteri benefici del suolo"}, {"titolo": "Rosmarino Salentino", "istruzione": "Annusa l essenza di rosmarino. Cresce spontaneo nella macchia mediterranea salentina. Viene usato come repellente naturale contro alcuni parassiti delle colture.", "info": "Canfora + 1,8-cineolo — Repellente naturale certificato"}];
+
+  function avviaAR() {
+    navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}})
+    .then(function(stream) {
+      video.srcObject = stream;
+      document.getElementById('permessoScreen').style.display = 'none';
+      document.getElementById('errorScreen').style.display = 'none';
+      document.getElementById('ui').style.display = 'block';
+      video.onloadedmetadata = function() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        avviaOverlay();
+      };
+    }).catch(function(err) {
+      document.getElementById('permessoScreen').style.display = 'none';
+      document.getElementById('errorScreen').style.display = 'flex';
+      document.getElementById('errorMsg').textContent = err.name === 'NotAllowedError'
+        ? 'Permesso fotocamera negato. Vai in Impostazioni > Chrome > Fotocamera e consenti l accesso.'
+        : 'Errore: ' + err.message;
+    });
+  }
+
+  function avanzaStep() {
+    stepCorrente = (stepCorrente + 1) % steps.length;
+    var s = steps[stepCorrente];
+    document.getElementById('titolo').textContent = s.titolo;
+    document.getElementById('istruzione').textContent = s.istruzione;
+    document.getElementById('infoExtra').textContent = s.info;
+    if (stepCorrente === steps.length - 1) {
+      document.getElementById('pulsante').textContent = 'Ricomincia';
+    } else {
+      document.getElementById('pulsante').textContent = 'Prossimo';
+    }
+  }
+
+  function avviaOverlay() {
+    var s = steps[0];
+    document.getElementById('infoExtra').textContent = s.info;
+    function loop() {
+      requestAnimationFrame(loop);
+      t += 0.018;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      var cx = canvas.width / 2;
+      var cy = canvas.height * 0.42;
+
+      // Cerchi concentrici
+      for (var i = 3; i > 0; i--) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, 50 + i*25 + 6*Math.sin(t+i), 0, Math.PI*2);
+        ctx.strokeStyle = ACC;
+        ctx.globalAlpha = 0.06*i + 0.02*Math.sin(t);
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      // Crosshair
+      var r = 56 + 6*Math.sin(t);
+      var len = 16;
+      ctx.strokeStyle = ACC;
+      ctx.lineWidth = 2.5;
+      ctx.globalAlpha = 0.85 + 0.15*Math.sin(t*1.3);
+      ctx.beginPath(); ctx.moveTo(cx-r,cy-r+len); ctx.lineTo(cx-r,cy-r); ctx.lineTo(cx-r+len,cy-r); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx+r-len,cy-r); ctx.lineTo(cx+r,cy-r); ctx.lineTo(cx+r,cy-r+len); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx-r,cy+r-len); ctx.lineTo(cx-r,cy+r); ctx.lineTo(cx-r+len,cy+r); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx+r-len,cy+r); ctx.lineTo(cx+r,cy+r); ctx.lineTo(cx+r,cy+r-len); ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      // Punto centrale
+      ctx.beginPath();
+      ctx.arc(cx, cy, 5+2*Math.sin(t*2), 0, Math.PI*2);
+      ctx.fillStyle = ACC;
+      ctx.globalAlpha = 0.9;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      // Info testo
+      var s2 = steps[stepCorrente];
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.globalAlpha = 0.7 + 0.2*Math.sin(t*0.8);
+      ctx.fillText(s2.info, cx, cy - 90);
+      ctx.globalAlpha = 1;
+    }
+    loop();
+  }
+
+  window.addEventListener('resize', function() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+</script>
+</body>
+</html>
