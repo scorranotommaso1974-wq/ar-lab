@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR Lab — Agri-Hub Taviano</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #0a1a0d; color: white; min-height: 100vh; padding: 32px 20px; }
+    .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 20px; margin-bottom: 14px; display: flex; align-items: center; gap: 16px; text-decoration: none; color: white; transition: all 0.2s; }
+    .card:hover { background: rgba(255,255,255,0.1); transform: translateX(4px); }
+    .num { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+  <div style="text-align:center;margin-bottom:40px;">
+    <p style="font-size:10px;color:#4ade80;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;">Agri-Hub Taviano</p>
+    <h1 style="font-size:36px;font-weight:900;margin-bottom:8px;">AR Lab &#x1F4F1;</h1>
+    <p style="color:#64748b;font-size:14px;">Seleziona il percorso sensoriale da avviare</p>
+  </div>
+
+  <a href="ar-tatto.html" class="card">
+    <div class="num" style="background:rgba(34,197,94,0.2);">&#x1F91A;</div>
+    <div><p style="font-size:10px;color:#4ade80;font-weight:700;text-transform:uppercase;margin-bottom:2px;">Stazione 1 — Sensoriale</p><p style="font-weight:700;">Il Tatto della Terra</p><p style="font-size:12px;color:#64748b;">10 min · Eta 6+</p></div>
+  </a>
+
+  <a href="ar-olfatto.html" class="card">
+    <div class="num" style="background:rgba(236,72,153,0.2);">&#x1F338;</div>
+    <div><p style="font-size:10px;color:#f472b6;font-weight:700;text-transform:uppercase;margin-bottom:2px;">Stazione 2 — Olfattiva</p><p style="font-weight:700;">Il Profumo del Garofano</p><p style="font-size:12px;color:#64748b;">15 min · Eta 5+</p></div>
+  </a>
+
+  <a href="ar-suono.html" class="card">
+    <div class="num" style="background:rgba(96,165,250,0.2);">&#x1F3B5;</div>
+    <div><p style="font-size:10px;color:#60a5fa;font-weight:700;text-transform:uppercase;margin-bottom:2px;">Stazione 3 — Uditiva</p><p style="font-weight:700;">I Suoni della Campagna</p><p style="font-size:12px;color:#64748b;">12 min · Eta 4+</p></div>
+  </a>
+
+  <a href="ar-ciclovita.html" class="card">
+    <div class="num" style="background:rgba(168,85,247,0.2);">&#x1F331;</div>
+    <div><p style="font-size:10px;color:#a855f7;font-weight:700;text-transform:uppercase;margin-bottom:2px;">Stazione 4 — Cognitiva</p><p style="font-weight:700;">Dal Seme al Mercato</p><p style="font-size:12px;color:#64748b;">20 min · Eta 7+</p></div>
+  </a>
+
+  <a href="ar-movimento.html" class="card">
+    <div class="num" style="background:rgba(244,114,182,0.2);">&#x1F9B5;</div>
+    <div><p style="font-size:10px;color:#f472b6;font-weight:700;text-transform:uppercase;margin-bottom:2px;">Stazione 5 — Motoria</p><p style="font-weight:700;">Muoversi nel Campo</p><p style="font-size:12px;color:#64748b;">15 min · Eta 5+</p></div>
+  </a>
+
+  <div style="text-align:center;margin-top:32px;">
+    <a href="https://script.google.com/macros/s/AKfycbw4HEPydlDIT8hw63q12OEmerpCz6-HYMwhaORNY7nakupA09p7Q0XnQSc6UR7-ejRg3A/exec?p=ARVR" style="color:#64748b;font-size:12px;text-decoration:none;">&#x2190; Torna ad Agri-Hub AR/VR Lab</a>
+  </div>
+</body>
+</html>
