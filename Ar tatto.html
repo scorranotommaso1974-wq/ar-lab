@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR — Il Tatto della Terra | Agri-Hub Taviano</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #0a1a0d; color: white; overflow: hidden; }
+    #video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+    #overlay { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
+    #canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 5; }
+    #ui { position: fixed; bottom: 0; left: 0; right: 0; z-index: 20; padding: 16px; }
+    #infoBox { background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); border-radius: 20px 20px 0 0; padding: 20px; border-top: 3px solid #22c55e; }
+    #stazione { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #4ade80; margin-bottom: 4px; }
+    #titolo { font-size: 22px; font-weight: 900; margin-bottom: 6px; }
+    #istruzione { font-size: 13px; color: #94a3b8; line-height: 1.5; margin-bottom: 12px; }
+    .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; margin-right: 6px; margin-bottom: 6px; }
+    #navBar { position: fixed; top: 0; left: 0; right: 0; z-index: 30; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent); }
+    #btnChiudi { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 16px; border-radius: 10px; font-size: 11px; font-weight: 700; cursor: pointer; text-decoration: none; }
+    #pulsante { width: 100%; padding: 14px; background: #22c55e; color: #052e16; border: none; border-radius: 14px; font-size: 16px; font-weight: 900; cursor: pointer; margin-top: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+    #permessoScreen { position: fixed; inset: 0; z-index: 100; background: #0a1a0d; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; text-align: center; }
+    #errorScreen { position: fixed; inset: 0; z-index: 100; background: #1a0a0a; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; text-align: center; display: none; }
+    .terra-badge { position: fixed; z-index: 20; border-radius: 16px; padding: 10px 14px; font-size: 12px; font-weight: 700; pointer-events: none; animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:0.7;transform:scale(1);} 50%{opacity:1;transform:scale(1.05);} }
+  </style>
+</head>
+<body>
+
+  <!-- SCHERMATA PERMESSO -->
+  <div id="permessoScreen">
+    <div style="font-size:64px;margin-bottom:20px;">&#x1F91A;</div>
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#4ade80;margin-bottom:12px;">Stazione 1 — Agri-Hub Taviano</div>
+    <h1 style="font-size:28px;font-weight:900;margin-bottom:12px;">Il Tatto della Terra</h1>
+    <p style="color:#94a3b8;font-size:14px;line-height:1.6;margin-bottom:24px;max-width:320px;">Esplora i diversi tipi di suolo salentino con la realta aumentata. Punta la fotocamera verso il terreno e scopri i segreti di ogni tipo di terra.</p>
+    <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:16px;margin-bottom:24px;text-align:left;width:100%;max-width:320px;">
+      <p style="font-size:11px;font-weight:700;color:#4ade80;margin-bottom:8px;text-transform:uppercase;">Il percorso ti chieder&#x00E0;:</p>
+      <p style="font-size:12px;color:#94a3b8;line-height:1.8;">&#x2714; Accesso alla fotocamera<br>&#x2714; Puntare verso superfici diverse<br>&#x2314; GPS non richiesto</p>
+    </div>
+    <button onclick="avviaAR()" style="width:100%;max-width:320px;padding:16px;background:#22c55e;color:#052e16;border:none;border-radius:14px;font-size:16px;font-weight:900;cursor:pointer;text-transform:uppercase;letter-spacing:0.06em;">&#x1F4F7; Avvia Percorso AR</button>
+    <a href="https://script.google.com/macros/s/AKfycbw4HEPydlDIT8hw63q12OEmerpCz6-HYMwhaORNY7nakupA09p7Q0XnQSc6UR7-ejRg3A/exec?p=ARVR" style="display:block;margin-top:16px;color:#64748b;font-size:12px;">&#x2190; Torna ad Agri-Hub</a>
+  </div>
+
+  <!-- SCHERMATA ERRORE -->
+  <div id="errorScreen">
+    <div style="font-size:48px;margin-bottom:16px;">&#x26A0;&#xFE0F;</div>
+    <h2 style="font-size:22px;font-weight:900;margin-bottom:12px;">Fotocamera non disponibile</h2>
+    <p id="errorMsg" style="color:#94a3b8;font-size:13px;line-height:1.6;margin-bottom:20px;max-width:300px;">Verifica i permessi della fotocamera nelle impostazioni del browser.</p>
+    <button onclick="avviaAR()" style="padding:12px 24px;background:#22c55e;color:#052e16;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:12px;">Riprova</button>
+    <a href="https://script.google.com/macros/s/AKfycbw4HEPydlDIT8hw63q12OEmerpCz6-HYMwhaORNY7nakupA09p7Q0XnQSc6UR7-ejRg3A/exec?p=ARVR" style="color:#64748b;font-size:12px;">&#x2190; Torna ad Agri-Hub</a>
+  </div>
+
+  <!-- VIDEO FOTOCAMERA -->
+  <video id="video" autoplay playsinline muted></video>
+
+  <!-- CANVAS OVERLAY AR -->
+  <canvas id="canvas"></canvas>
+
+  <!-- NAVBAR -->
+  <div id="navBar">
+    <div>
+      <p style="font-size:9px;color:#4ade80;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin:0;">Agri-Hub Taviano</p>
+      <p style="font-size:11px;font-weight:900;margin:0;">Stazione 1 — Tatto della Terra</p>
+    </div>
+    <a href="https://script.google.com/macros/s/AKfycbw4HEPydlDIT8hw63q12OEmerpCz6-HYMwhaORNY7nakupA09p7Q0XnQSc6UR7-ejRg3A/exec?p=ARVR" id="btnChiudi">&#x2715; Chiudi</a>
+  </div>
+
+  <!-- UI INFERIORE -->
+  <div id="ui" style="display:none;">
+    <div id="infoBox">
+      <p id="stazione">&#x1F331; Stazione 1 — Percorso Sensoriale AR</p>
+      <h2 id="titolo">Il Tatto della Terra</h2>
+      <p id="istruzione">Punta la fotocamera verso diversi tipi di superficie. Il sistema riconoscera il tipo di suolo salentino e mostrera informazioni sui nutrienti e le colture adatte.</p>
+      <div>
+        <span class="badge" style="background:rgba(34,197,94,0.2);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">Durata: 10 min</span>
+        <span class="badge" style="background:rgba(96,165,250,0.2);color:#93c5fd;border:1px solid rgba(96,165,250,0.3);">Eta: 6+</span>
+        <span class="badge" style="background:rgba(168,85,247,0.2);color:#d8b4fe;border:1px solid rgba(168,85,247,0.3);">Sensoriale</span>
+      </div>
+      <button id="pulsante" onclick="avanzaStep()">Prossima Stazione &#x2192;</button>
+    </div>
+  </div>
+
+<script>
+  var video = document.getElementById('video');
+  var canvas = document.getElementById('canvas');
+  var ctx = canvas.getContext('2d');
+  var stepCorrente = 0;
+  var animFrame = null;
+  var t = 0;
+
+  var steps = [
+    {
+      titolo: 'Terra Calcarea Salentina',
+      istruzione: 'Punta verso una superficie chiara o rocciosa. La terra calcarea del Salento e povera di materia organica ma ideale per l olivicoltura grazie al drenaggio eccellente.',
+      colore: '#fbbf24',
+      info: 'pH: 7.5-8.2 — Colture ideali: Olivo, Vite, Garofano',
+      emoji: '&#x1FAA8;'
+    },
+    {
+      titolo: 'Terra Argillosa',
+      istruzione: 'Punta verso una superficie scura o umida. L argilla trattiene l acqua e i nutrienti — ottima per ortofrutta ma richiede lavorazioni frequenti per evitare la compattazione.',
+      colore: '#a16207',
+      info: 'pH: 6.5-7.0 — Colture ideali: Pomodoro, Peperone, Zucchina',
+      emoji: '&#x1F9F1;'
+    },
+    {
+      titolo: 'Terra Sabbiosa',
+      istruzione: 'Punta verso una superficie chiara e granulosa. La terra sabbiosa drena velocemente — richiede irrigazione frequente ma si scalda rapidamente in primavera.',
+      colore: '#d97706',
+      info: 'pH: 6.0-6.5 — Colture ideali: Anguria, Melone, Fragola',
+      emoji: '&#x1F3D6;&#xFE0F;'
+    }
+  ];
+
+  function avviaAR() {
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    }).then(function(stream) {
+      video.srcObject = stream;
+      document.getElementById('permessoScreen').style.display = 'none';
+      document.getElementById('errorScreen').style.display = 'none';
+      document.getElementById('ui').style.display = 'block';
+      video.onloadedmetadata = function() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        avviaOverlay();
+      };
+    }).catch(function(err) {
+      document.getElementById('permessoScreen').style.display = 'none';
+      document.getElementById('errorScreen').style.display = 'flex';
+      document.getElementById('errorMsg').textContent = err.name === 'NotAllowedError'
+        ? 'Permesso fotocamera negato. Vai in Impostazioni > Chrome > Fotocamera e consenti l accesso.'
+        : 'Errore: ' + err.message;
+    });
+  }
+
+  function avanzaStep() {
+    stepCorrente = (stepCorrente + 1) % steps.length;
+    var s = steps[stepCorrente];
+    document.getElementById('titolo').textContent = s.titolo;
+    document.getElementById('istruzione').textContent = s.istruzione;
+    if (stepCorrente === steps.length - 1) {
+      document.getElementById('pulsante').textContent = 'Ricomincia &#x21BA;';
+    } else {
+      document.getElementById('pulsante').innerHTML = 'Prossima Stazione &#x2192;';
+    }
+  }
+
+  function avviaOverlay() {
+    function loop() {
+      animFrame = requestAnimationFrame(loop);
+      t += 0.02;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      var s = steps[stepCorrente];
+      var cx = canvas.width / 2;
+      var cy = canvas.height / 2 - 60;
+
+      // Cerchio di riconoscimento al centro
+      ctx.beginPath();
+      ctx.arc(cx, cy, 60 + 8*Math.sin(t), 0, Math.PI*2);
+      ctx.strokeStyle = s.colore;
+      ctx.globalAlpha = 0.6 + 0.2*Math.sin(t);
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      // Cerchio esterno pulsante
+      ctx.beginPath();
+      ctx.arc(cx, cy, 90 + 5*Math.sin(t*0.7), 0, Math.PI*2);
+      ctx.strokeStyle = s.colore;
+      ctx.globalAlpha = 0.2;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      // Angoli crosshair
+      var r = 65 + 8*Math.sin(t);
+      var len = 18;
+      ctx.strokeStyle = s.colore;
+      ctx.lineWidth = 3;
+      ctx.globalAlpha = 0.9;
+      // Top-left
+      ctx.beginPath(); ctx.moveTo(cx-r, cy-r+len); ctx.lineTo(cx-r, cy-r); ctx.lineTo(cx-r+len, cy-r); ctx.stroke();
+      // Top-right
+      ctx.beginPath(); ctx.moveTo(cx+r-len, cy-r); ctx.lineTo(cx+r, cy-r); ctx.lineTo(cx+r, cy-r+len); ctx.stroke();
+      // Bottom-left
+      ctx.beginPath(); ctx.moveTo(cx-r, cy+r-len); ctx.lineTo(cx-r, cy+r); ctx.lineTo(cx-r+len, cy+r); ctx.stroke();
+      // Bottom-right
+      ctx.beginPath(); ctx.moveTo(cx+r-len, cy+r); ctx.lineTo(cx+r, cy+r); ctx.lineTo(cx+r, cy+r-len); ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      // Badge info centrale
+      ctx.fillStyle = s.colore;
+      ctx.globalAlpha = 0.15;
+      ctx.beginPath(); ctx.arc(cx, cy, 45, 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 1;
+
+      // Testo info sopra il cerchio
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.globalAlpha = 0.8 + 0.2*Math.sin(t);
+      ctx.fillText(s.info, cx, cy - 110);
+      ctx.globalAlpha = 1;
+    }
+    loop();
+  }
+
+  window.addEventListener('resize', function() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+</script>
+</body>
+</html>
